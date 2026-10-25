@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Generated database and artefacts (reproducible via scripts/run_pipeline.py)
+data/*.db
+data/*.db-journal
+outputs/*
+!outputs/.gitkeep
+
+# Secrets: never commit API keys for a future LLM integration
+.env
+*.key
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

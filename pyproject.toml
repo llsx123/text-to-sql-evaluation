@@ -1,0 +1,18 @@
+[project]
+name = "text-to-sql-evaluation"
+version = "1.0.0"
+description = "Read-only Text-to-SQL evaluation harness: safe execution, result comparison, error taxonomy and bootstrap comparison"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"
