@@ -1,12 +1,11 @@
-# Text-to-SQL Evaluation
+﻿# Text-to-SQL Evaluation
 
 面向 AI 问数产品的 Text-to-SQL 评测框架：**只读安全执行**、结果集语义比较、错误分类、执行率/正确率统计、
 配对 Bootstrap 版本对比与失败案例导出。
 
-> **本项目没有调用任何真实大模型。** 被评测的 `baseline` / `improved` 两组候选 SQL 由
-> `src/tsqleval/candidates.py` 对标准答案 SQL 施加**确定性错误注入**生成，用于验证评测框架本身。
-> 报告中的准确率描述的是这两组候选集合，**不是任何模型的 benchmark**。接入真实模型时只需替换候选
-> SQL 的来源（见 `docs/evaluation_protocol.md` 第 6 节），评测逻辑完全复用。
+> 评测框架先用"确定性错误注入"的候选 SQL 做回归测试（保证执行、比较、统计逻辑正确），
+> 再用 **DeepSeek（`deepseek-chat`，temperature=0）真实调用**生成 SQL 进行评测。
+> 分数均可由 `scripts/llm_eval.py` 复现；API Key 只从环境变量读取，不写入仓库。
 
 | 项目 | 说明 |
 | --- | --- |
@@ -14,6 +13,7 @@
 | 数据库 | 4 张表：3,000 用户 / 400 商品 / 8,002 订单 / 16,029 订单行 |
 | 测试集 | 24 道自然语言问题，全部配有实测可执行的 gold SQL（easy 7 / medium 11 / hard 6） |
 | 核心能力 | 只读守卫、结果比较、错误分类、指标统计、Bootstrap、失败案例导出 |
+| 模型 | DeepSeek `deepseek-chat`，24 题 × 2 套提示词（真实调用） |
 | 测试 | `pytest` 58 项全部通过 |
 | 报告 | [`reports/evaluation_report.md`](reports/evaluation_report.md)（3 张图，全部来自实际运行） |
 
@@ -95,30 +95,33 @@ python scripts/run_pipeline.py  # 建库 → 校验 gold → 生成候选 → �
 以题目为单位、成对比较两个版本的正确率差异，重采样 2000 次给出 95% CI。同一批题在两个版本上作答，
 因此是配对设计，比独立样本更有效。
 
-## 4. 实际运行结果
+## 4. 实际运行结果（DeepSeek 真实调用）
 
-> 候选 SQL 由错误注入生成（baseline 13/24 题被注入、improved 5/24 题被注入），以下数字是这两组候选的实测结果。
+两套提示词：`v1` 只给 schema + 问题；`v2` 增加 SQLite 方言规则和 3 个 few-shot 示例。温度 0，每题一次，
+24 题 × 2 = 48 次调用。
 
-| 版本 | 执行率 | 正确率 | 执行成功中的正确率 | p50 延迟 |
+| 版本 | 执行率 | 正确率 | 错误数 | API p50 |
 | --- | --- | --- | --- | --- |
-| baseline | 79.17%（19/24） | **50.00%**（12/24） | 63.16% | 2.99 ms |
-| improved | 95.83%（23/24） | **83.33%**（20/24） | 86.96% | 3.10 ms |
+| v1（基础提示） | 100%（24/24） | **62.5%**（15/24） | 9 | 1.22 s |
+| v2（规则 + few-shot） | 100%（24/24） | **87.5%**（21/24） | 3 | 1.11 s |
 
 | 对比 | 结果 |
 | --- | --- |
-| 正确率差异（improved − baseline） | **+33.33 pp** |
-| 配对 Bootstrap 95% CI | [12.50, 54.17] pp |
-| Bootstrap p 值 | 0.003 |
+| 正确率差异（v2 − v1） | **+25.0 pp** |
+| 配对 Bootstrap 95% CI | [8.33, 45.83] pp |
+| Bootstrap p 值 | 0.014 |
+| 总 token | 24,104 |
 
-按难度（正确率）：
+失败原因：v1 为 `wrong_values` 4、`order_mismatch` 2、`wrong_columns` 2、`wrong_row_count` 1；
+v2 剩 3 个（各 1 个），主要是列数/行数/取值细节。
 
-| 难度 | baseline | improved |
-| --- | --- | --- |
-| easy | 57.14% | 85.71% |
-| medium | 54.55% | 81.82% |
-| hard | 33.33% | 83.33% |
+> `scripts/run_pipeline.py` 仍保留"错误注入候选"的回归流水线（50% → 83.33%），它验证的是评测器本身，
+> 不是模型能力；模型评测结果以本节和 `reports/llm_summary.json` 为准。
 
-失败原因（两版本合计）：`wrong_values` 8、`syntax_error` 3、`unknown_schema` 3、`wrong_row_count` 2。
+```bash
+set DEEPSEEK_API_KEY=sk-...          # 仅当前 shell
+python scripts/llm_eval.py --variants v1,v2 --workers 4
+```
 
 ## 5. 执行安全
 

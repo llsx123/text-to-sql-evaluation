@@ -1,0 +1,247 @@
+question_id,variant,sql,executed,correct,reason,latency_ms,api_latency_ms,prompt_tokens,completion_tokens,error
+q01,v1,"SELECT COUNT(*) AS order_count
+FROM orders
+WHERE purchase_ts >= '2024-01-01'
+  AND purchase_ts < '2024-02-01'",True,True,match,0.66,1650.1,324,41,
+q02,v1,"SELECT COUNT(*) AS canceled_orders
+FROM orders
+WHERE order_status = 'canceled'",True,True,match,1.78,1669.9,323,23,
+q03,v1,SELECT COUNT(DISTINCT category) AS category_count FROM products,True,True,match,0.42,1408.3,317,17,
+q04,v1,"SELECT SUM(quantity * unit_price) AS total_sales
+FROM order_items",True,True,match,2.44,1377.1,325,21,
+q05,v1,"SELECT SUM(oi.quantity * oi.unit_price) / COUNT(DISTINCT o.order_id) AS avg_order_value
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.order_id",True,False,wrong_values,8.05,1084.4,325,51,
+q06,v1,"SELECT category, COUNT(*) AS product_count
+FROM products
+GROUP BY category
+ORDER BY product_count DESC",True,False,order_mismatch,0.59,949.2,328,26,
+q07,v1,"SELECT state, COUNT(*) AS user_count
+FROM users
+GROUP BY state
+ORDER BY user_count DESC",True,False,order_mismatch,1.89,1417.4,326,26,
+q08,v1,"SELECT p.category, SUM(oi.quantity * oi.unit_price) AS revenue
+FROM order_items oi
+JOIN products p ON p.product_id = oi.product_id
+GROUP BY p.category
+ORDER BY revenue DESC
+LIMIT 5",True,True,match,12.91,1081.3,322,58,
+q09,v1,"SELECT strftime('%Y-%m', purchase_ts) AS month, COUNT(*) AS order_count
+FROM orders
+WHERE purchase_ts >= '2024-01-01' AND purchase_ts < '2025-01-01'
+GROUP BY month
+ORDER BY month ASC",True,True,match,6.11,1254.6,328,63,
+q10,v1,"SELECT user_id, COUNT(*) AS order_count
+FROM orders
+GROUP BY user_id
+ORDER BY order_count DESC, user_id ASC
+LIMIT 10",True,True,match,1.57,1341.4,331,37,
+q11,v1,"SELECT SUM(oi.quantity * oi.unit_price) AS total_sales
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.order_id
+WHERE o.order_status = 'delivered'",True,True,match,6.25,1163.2,328,51,
+q12,v1,"SELECT COUNT(*) FROM (
+    SELECT user_id
+    FROM orders
+    GROUP BY user_id
+    HAVING COUNT(*) >= 4
+)",True,True,match,1.3,998.0,324,35,
+q13,v1,"SELECT p.category
+FROM order_items oi
+JOIN products p ON p.product_id = oi.product_id
+GROUP BY p.category
+ORDER BY SUM(oi.quantity * oi.unit_price) DESC
+LIMIT 1",True,False,wrong_columns,13.43,1100.8,317,54,
+q14,v1,"SELECT
+    p.category,
+    ROUND(SUM(oi.quantity * oi.unit_price), 2) AS total_sales,
+    ROUND(
+        100.0 * SUM(oi.quantity * oi.unit_price) /
+        (SELECT SUM(quantity * unit_price) FROM order_items),
+        2
+    ) AS pct_of_total
+FROM order_items oi
+JOIN products p ON p.product_id = oi.product_id
+GROUP BY p.category
+ORDER BY total_sales DESC",True,True,match,14.6,1251.3,328,113,
+q15,v1,"SELECT
+    strftime('%Y-%m', o.purchase_ts) AS month,
+    SUM(oi.quantity * oi.unit_price) AS monthly_sales,
+    SUM(SUM(oi.quantity * oi.unit_price)) OVER (
+        ORDER BY strftime('%Y-%m', o.purchase_ts)
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS cumulative_sales
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.order_id
+GROUP BY strftime('%Y-%m', o.purchase_ts)
+ORDER BY month ASC",True,True,match,16.94,1552.3,328,138,
+q16,v1,"SELECT
+  1.0 * COUNT(DISTINCT CASE WHEN order_count >= 2 THEN user_id END) / COUNT(DISTINCT user_id) AS ratio
+FROM (
+  SELECT user_id, COUNT(*) AS order_count
+  FROM orders
+  GROUP BY user_id
+)",True,False,wrong_values,2.65,1228.7,328,62,
+q17,v1,"SELECT
+    p.category,
+    COUNT(DISTINCT oi.order_id) AS order_count,
+    AVG(oi.unit_price) AS avg_unit_price
+FROM order_items oi
+JOIN products p ON p.product_id = oi.product_id
+GROUP BY p.category
+ORDER BY order_count DESC",True,False,wrong_values,15.36,1235.1,328,69,
+q18,v1,"SELECT
+  CASE
+    WHEN CAST(strftime('%m', purchase_ts) AS INTEGER) BETWEEN 1 AND 6 THEN 'H1'
+    ELSE 'H2'
+  END AS half,
+  COUNT(*) AS order_count
+FROM orders
+WHERE strftime('%Y', purchase_ts) = '2024'
+GROUP BY half
+ORDER BY half",True,False,wrong_row_count,7.63,1214.4,337,79,
+q19,v1,"SELECT AVG(item_count) AS avg_items_per_order
+FROM (
+    SELECT order_id, SUM(quantity) AS item_count
+    FROM order_items
+    GROUP BY order_id
+)",True,False,wrong_values,6.17,1045.1,320,43,
+q20,v1,"SELECT state, COUNT(*) AS user_count
+FROM users
+GROUP BY state
+ORDER BY user_count DESC
+LIMIT 3",True,True,match,1.17,1185.0,323,31,
+q21,v1,SELECT COUNT(*) FROM orders o WHERE NOT EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.order_id),True,True,match,5.0,1021.3,322,32,
+q22,v1,"SELECT u.state, SUM(oi.quantity * oi.unit_price) AS sales
+FROM orders o
+JOIN users u ON u.user_id = o.user_id
+JOIN order_items oi ON oi.order_id = o.order_id
+GROUP BY u.state
+ORDER BY sales DESC",True,True,match,18.62,1295.8,323,66,
+q23,v1,"SELECT strftime('%Y-%m', purchase_ts) AS month, COUNT(*) AS order_count
+FROM orders
+GROUP BY month
+ORDER BY order_count DESC
+LIMIT 1",True,True,match,4.9,1146.2,317,43,
+q24,v1,"SELECT p.category
+FROM order_items oi
+JOIN products p ON p.product_id = oi.product_id
+GROUP BY p.category
+ORDER BY SUM(oi.quantity * oi.unit_price) / COUNT(DISTINCT oi.order_id) DESC
+LIMIT 1",True,False,wrong_columns,16.43,945.2,328,64,
+q01,v2,SELECT COUNT(*) FROM orders WHERE purchase_ts >= '2024-01-01' AND purchase_ts < '2024-02-01',True,True,match,0.51,1008.1,572,35,
+q02,v2,SELECT COUNT(*) FROM orders WHERE order_status = 'canceled',True,True,match,1.59,973.2,571,17,
+q03,v2,SELECT COUNT(DISTINCT category) FROM products,True,True,match,0.39,1257.2,565,14,
+q04,v2,"SELECT ROUND(SUM(quantity * unit_price), 2) AS total_sales FROM order_items",True,True,match,2.35,1001.3,573,26,
+q05,v2,"SELECT ROUND(SUM(i.quantity * i.unit_price) / COUNT(DISTINCT o.order_id), 2) AS avg_order_value
+FROM orders o
+JOIN order_items i ON i.order_id = o.order_id",True,True,match,8.65,912.9,573,53,
+q06,v2,"SELECT category, COUNT(*) AS product_count
+FROM products
+GROUP BY category
+ORDER BY product_count DESC, category",True,True,match,0.6,1433.8,576,28,
+q07,v2,"SELECT state, COUNT(*) AS user_count
+FROM users
+GROUP BY state
+ORDER BY user_count DESC, state",True,True,match,1.15,906.3,574,28,
+q08,v2,"SELECT p.category, ROUND(SUM(i.quantity * i.unit_price), 2) AS gmv
+FROM order_items i
+JOIN products p ON p.product_id = i.product_id
+GROUP BY p.category
+ORDER BY gmv DESC, p.category
+LIMIT 5",True,True,match,13.24,1105.0,570,65,
+q09,v2,"SELECT substr(purchase_ts, 1, 7) AS month, COUNT(*) AS order_count FROM orders WHERE purchase_ts >= '2024-01-01' AND purchase_ts < '2025-01-01' GROUP BY month ORDER BY month",True,True,match,2.48,1146.4,576,60,
+q10,v2,"SELECT user_id, COUNT(DISTINCT order_id) AS order_count
+FROM orders
+GROUP BY user_id
+ORDER BY order_count DESC, user_id
+LIMIT 10",True,True,match,5.4,1188.4,579,41,
+q11,v2,"SELECT ROUND(SUM(i.quantity * i.unit_price), 2) AS total_sales
+FROM orders o
+JOIN order_items i ON i.order_id = o.order_id
+WHERE o.order_status = 'delivered'",True,True,match,7.04,1074.3,576,53,
+q12,v2,"SELECT COUNT(*) FROM (
+    SELECT user_id
+    FROM orders
+    GROUP BY user_id
+    HAVING COUNT(DISTINCT order_id) >= 4
+)",True,True,match,5.37,1365.3,572,40,
+q13,v2,"SELECT p.category
+FROM order_items i
+JOIN products p ON p.product_id = i.product_id
+GROUP BY p.category
+ORDER BY SUM(i.quantity * i.unit_price) DESC, p.category
+LIMIT 1",True,False,wrong_columns,14.95,1116.2,565,53,
+q14,v2,"SELECT p.category,
+       ROUND(SUM(i.quantity * i.unit_price), 2) AS revenue,
+       ROUND(100.0 * SUM(i.quantity * i.unit_price) / (SELECT SUM(quantity * unit_price) FROM order_items), 2) AS pct
+FROM order_items i
+JOIN products p ON p.product_id = i.product_id
+GROUP BY p.category
+ORDER BY revenue DESC, p.category",True,True,match,14.85,1329.9,576,98,
+q15,v2,"WITH monthly AS (
+    SELECT substr(o.purchase_ts, 1, 7) AS month,
+           SUM(i.quantity * i.unit_price) AS sales
+    FROM orders o
+    JOIN order_items i ON i.order_id = o.order_id
+    WHERE o.order_status <> 'canceled'
+    GROUP BY month
+)
+SELECT month,
+       ROUND(sales, 2) AS monthly_sales,
+       ROUND(SUM(sales) OVER (ORDER BY month), 2) AS cumulative_sales
+FROM monthly
+ORDER BY month",True,False,wrong_values,13.64,1525.0,576,121,
+q16,v2,"WITH user_orders AS (
+    SELECT user_id, COUNT(DISTINCT order_id) AS order_count
+    FROM orders
+    GROUP BY user_id
+)
+SELECT
+    ROUND(
+        1.0 * SUM(CASE WHEN order_count >= 2 THEN 1 ELSE 0 END) / COUNT(*),
+        4
+    ) AS ratio
+FROM user_orders",True,True,match,5.6,1108.9,576,82,
+q17,v2,"SELECT p.category,
+       COUNT(DISTINCT o.order_id) AS order_count,
+       ROUND(AVG(i.unit_price), 2) AS avg_unit_price
+FROM order_items i
+JOIN products p ON p.product_id = i.product_id
+JOIN orders o ON o.order_id = i.order_id
+GROUP BY p.category
+ORDER BY order_count DESC, p.category",True,True,match,19.25,1427.5,576,84,
+q18,v2,"SELECT CASE WHEN substr(purchase_ts, 6, 2) BETWEEN '01' AND '06' THEN 'H1' ELSE 'H2' END AS half, COUNT(DISTINCT order_id) AS order_count FROM orders WHERE substr(purchase_ts, 1, 4) = '2024' GROUP BY half ORDER BY half",True,False,wrong_row_count,5.66,854.1,585,78,
+q19,v2,"SELECT ROUND(1.0 * SUM(quantity) / COUNT(DISTINCT order_id), 2) AS avg_items_per_order
+FROM order_items",True,True,match,3.93,869.8,568,37,
+q20,v2,"SELECT state, COUNT(*) AS user_count
+FROM users
+GROUP BY state
+ORDER BY user_count DESC, state
+LIMIT 3",True,True,match,1.27,930.3,571,33,
+q21,v2,SELECT COUNT(*) FROM orders o WHERE NOT EXISTS (SELECT 1 FROM order_items i WHERE i.order_id = o.order_id),True,True,match,3.7,885.2,570,30,
+q22,v2,"SELECT u.state, ROUND(SUM(i.quantity * i.unit_price), 2) AS gmv
+FROM order_items i
+JOIN orders o ON o.order_id = i.order_id
+JOIN users u ON u.user_id = o.user_id
+GROUP BY u.state
+ORDER BY gmv DESC, u.state",True,True,match,20.77,1204.2,571,73,
+q23,v2,"SELECT substr(purchase_ts, 1, 7) AS month, COUNT(*) AS order_count
+FROM orders
+GROUP BY month
+ORDER BY order_count DESC, month
+LIMIT 1",True,True,match,2.74,1074.4,565,46,
+q24,v2,"WITH category_sales AS (
+    SELECT p.category,
+           SUM(i.quantity * i.unit_price) AS revenue,
+           COUNT(DISTINCT i.order_id) AS order_count
+    FROM order_items i
+    JOIN products p ON p.product_id = i.product_id
+    GROUP BY p.category
+)
+SELECT category,
+       ROUND(revenue / order_count, 2) AS avg_order_value
+FROM category_sales
+WHERE order_count > 0
+ORDER BY avg_order_value DESC, category
+LIMIT 1",True,True,match,18.18,1450.6,576,114,

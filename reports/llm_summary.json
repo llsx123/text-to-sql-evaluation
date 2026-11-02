@@ -1,0 +1,140 @@
+{
+  "model": "deepseek-chat",
+  "temperature": 0,
+  "questions": 24,
+  "summary": {
+    "v1": {
+      "questions": 24,
+      "executed": 24,
+      "execution_rate": 1.0,
+      "correct": 15,
+      "accuracy": 0.625,
+      "accuracy_given_executed": 0.625,
+      "syntax_errors": 0,
+      "unknown_schema_errors": 0,
+      "timeouts": 0,
+      "unsafe_blocked": 0,
+      "truncated": 0,
+      "latency_p50_ms": 5.552700000180266,
+      "latency_p95_ms": 16.866260000051625
+    },
+    "v2": {
+      "questions": 24,
+      "executed": 24,
+      "execution_rate": 1.0,
+      "correct": 21,
+      "accuracy": 0.875,
+      "accuracy_given_executed": 0.875,
+      "syntax_errors": 0,
+      "unknown_schema_errors": 0,
+      "timeouts": 0,
+      "unsafe_blocked": 0,
+      "truncated": 0,
+      "latency_p50_ms": 5.38549999987481,
+      "latency_p95_ms": 19.092510000223225
+    }
+  },
+  "by_difficulty": {
+    "v1": [
+      {
+        "difficulty": "easy",
+        "questions": 7,
+        "executed": 7,
+        "correct": 5,
+        "accuracy": 0.7143,
+        "execution_rate": 1.0
+      },
+      {
+        "difficulty": "medium",
+        "questions": 11,
+        "executed": 11,
+        "correct": 6,
+        "accuracy": 0.5455,
+        "execution_rate": 1.0
+      },
+      {
+        "difficulty": "hard",
+        "questions": 6,
+        "executed": 6,
+        "correct": 4,
+        "accuracy": 0.6667,
+        "execution_rate": 1.0
+      }
+    ],
+    "v2": [
+      {
+        "difficulty": "easy",
+        "questions": 7,
+        "executed": 7,
+        "correct": 7,
+        "accuracy": 1.0,
+        "execution_rate": 1.0
+      },
+      {
+        "difficulty": "medium",
+        "questions": 11,
+        "executed": 11,
+        "correct": 9,
+        "accuracy": 0.8182,
+        "execution_rate": 1.0
+      },
+      {
+        "difficulty": "hard",
+        "questions": 6,
+        "executed": 6,
+        "correct": 5,
+        "accuracy": 0.8333,
+        "execution_rate": 1.0
+      }
+    ]
+  },
+  "errors": {
+    "v1": [
+      {
+        "reason": "wrong_values",
+        "count": 4,
+        "share": 0.1667
+      },
+      {
+        "reason": "order_mismatch",
+        "count": 2,
+        "share": 0.0833
+      },
+      {
+        "reason": "wrong_columns",
+        "count": 2,
+        "share": 0.0833
+      },
+      {
+        "reason": "wrong_row_count",
+        "count": 1,
+        "share": 0.0417
+      }
+    ],
+    "v2": [
+      {
+        "reason": "wrong_columns",
+        "count": 1,
+        "share": 0.0417
+      },
+      {
+        "reason": "wrong_values",
+        "count": 1,
+        "share": 0.0417
+      },
+      {
+        "reason": "wrong_row_count",
+        "count": 1,
+        "share": 0.0417
+      }
+    ]
+  },
+  "total_tokens": 24104,
+  "bootstrap_v2_minus_v1": {
+    "estimate": 0.25,
+    "ci_low": 0.08333333333333326,
+    "ci_high": 0.45833333333333337,
+    "p_value": 0.014,
+    "n_boot": 2000
+  }
+}
